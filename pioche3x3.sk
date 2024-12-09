@@ -1,0 +1,70 @@
+import:
+    ch.njol.skript.Skript
+    org.bukkit.Bukkit
+    # Importations pour skBee
+    # Importations pour skReflect
+    com.btk5h.skriptmirror.skript.reflect.ExprJavaCall
+
+command /givehammer:
+    trigger:
+        give 1 of diamond pickaxe of efficiency 5 named "&b&lPioche 3x3" with lore "&7Casse les blocs en 3x3" to player
+        send "&aVous avez reçu une pioche 3x3 !" to player
+
+command /items3x3:
+    trigger:
+        set {_tool} to player's tool
+        if name of {_tool} contains "Pioche 3x3":
+            set name of {_tool} to "&b&lPioche 3x3"
+            set lore of {_tool} to "&7Casse les blocs en 3x3"
+            send "&aVotre pioche 3x3 a été réactivée !" to player
+        else:
+            send "&cVous devez tenir une pioche 3x3 dans votre main !" to player
+
+on break:
+    set {_tool} to player's tool
+    if name of {_tool} contains "Pioche 3x3":
+        # Définition de la liste des blocs cassables
+        delete {_breakable::*}
+        # Blocs de base
+        add stone, mossy cobblestone, granite, diorite, andesite, deepslate, bricks, sandstone, red sandstone to {_breakable::*}
+        add prismarine, dark prismarine, prismarine bricks, netherrack, stone bricks, mossy stone bricks to {_breakable::*}
+        add cracked stone bricks, chiseled stone bricks, ice, packed ice, blue ice, magma block to {_breakable::*}
+        add basalt, smooth basalt, polished basalt, cobblestone to {_breakable::*}
+        # Minerais
+        add coal ore, iron ore, gold ore, diamond ore, lapis ore, redstone ore, emerald ore to {_breakable::*}
+        add nether gold ore, nether quartz ore, ancient debris to {_breakable::*}
+        add deepslate coal ore, deepslate iron ore, deepslate gold ore, deepslate diamond ore to {_breakable::*}
+        add deepslate lapis ore, deepslate redstone ore, deepslate emerald ore to {_breakable::*}
+        add copper ore, deepslate copper ore to {_breakable::*}
+        add tuff to {_breakable::*}
+        
+        set {_block} to event-block
+        
+        loop {_breakable::*}:
+            if {_block} is loop-value:
+                cancel event
+                set {_center} to location of event-block
+                set {_face} to facing of player
+                
+                set {_x} to -1
+                while {_x} is less than or equal to 1:
+                    set {_y} to -1
+                    while {_y} is less than or equal to 1:
+                        set {_loc} to {_center}
+                        if {_face} is north or south:
+                            add {_x} to x-coord of {_loc}
+                            add {_y} to y-coord of {_loc}
+                        else if {_face} is east or west:
+                            add {_y} to y-coord of {_loc}
+                            add {_x} to z-coord of {_loc}
+                        else: # Up or down
+                            add {_x} to x-coord of {_loc}
+                            add {_y} to z-coord of {_loc}
+                        
+                        set {_check_block} to block at {_loc}
+                        if {_breakable::*} contains {_check_block}:
+                            if {_check_block} is not air:
+                                break {_check_block} naturally using {_tool}
+                        add 1 to {_y}
+                    add 1 to {_x}
+                stop
